@@ -41,10 +41,14 @@ export default function WishlistSidebar({ wishlistItems = [], removeFromWishlist
                     <h4 className="text-sm font-medium line-clamp-1">{item.title}</h4>
                     <p className="text-sm text-gray-500 mb-2">{item.price}</p>
                     
+                    {/* UPDATED BUTTON LOGIC HERE */}
                     <Button 
                       size="sm" 
-                      className="h-8 text-xs bg-black text-white hover:bg-gray-800"
-                      onClick={() => addToCart(item)}
+                      className="h-8 text-xs bg-black text-white hover:bg-gray-800 cursor-pointer"
+                      onClick={() => {
+                        addToCart(item);            // 1. Add to Cart
+                        removeFromWishlist(item.id); // 2. Remove from Wishlist
+                      }}
                     >
                       <ShoppingCart className="w-3 h-3 mr-1" /> Move to Cart
                     </Button>
@@ -53,7 +57,7 @@ export default function WishlistSidebar({ wishlistItems = [], removeFromWishlist
                   <Button 
                     variant="ghost" 
                     size="icon" 
-                    className="text-gray-400 hover:text-red-500"
+                    className="text-gray-400 hover:text-red-500 cursor-pointer"
                     onClick={() => removeFromWishlist(item.id)}
                   >
                     <Trash2 className="w-4 h-4" />
