@@ -5,9 +5,12 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { CheckCircle } from "lucide-react";
+import { useAuth } from "@/context/AuthContext"; // 1. Import Auth
+import { toast } from "react-hot-toast"; // 2. Import Toast
 
 export default function Checkout({ cartItems, clearCart }) {
   const navigate = useNavigate();
+  const { user } = useAuth(); // 3. Get current user
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
@@ -18,20 +21,43 @@ export default function Checkout({ cartItems, clearCart }) {
     return sum + (isNaN(price) ? 0 : price);
   }, 0);
 
-  // Handle "Place Order"
+  // Handle "Place Order" (Only fires if logged in)
   const handlePlaceOrder = (e) => {
     e.preventDefault();
+    
+    // Extra safety check
+    if (!user) {
+      toast.error("Log in to place order");
+      navigate("/login");
+      return;
+    }
+
     setIsProcessing(true);
 
     // Simulate a 2-second delay for "processing payment"
     setTimeout(() => {
       setIsProcessing(false);
       setIsSuccess(true);
-      clearCart(); // Empty the cart
+      clearCart();
+      toast.success("Order placed successfully!");
     }, 2000);
   };
 
-  // If Success, show the "Thank You" screen
+  // Handle "Login Check" (Fires if NOT logged in)
+  const handleLoginRedirect = (e) => {
+    e.preventDefault();
+    toast.error("Log in to place order", {
+        icon: '🔒',
+        style: {
+          borderRadius: '10px',
+          background: '#333',
+          color: '#fff',
+        },
+    });
+    navigate("/login");
+  };
+
+  // Success View
   if (isSuccess) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
@@ -45,7 +71,7 @@ export default function Checkout({ cartItems, clearCart }) {
     );
   }
 
-  // If Cart is empty (and not success yet), redirect or show message
+  // Empty Cart View
   if (cartItems.length === 0) {
     return (
       <div className="text-center py-20">
@@ -74,7 +100,7 @@ export default function Checkout({ cartItems, clearCart }) {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium mb-1">First Name</label>
-                    <Input required placeholder="John" />
+                    <Input required placeholder="John" defaultValue={user ? user.name.split(" ")[0] : ""} />
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-1">Last Name</label>
@@ -139,14 +165,28 @@ export default function Checkout({ cartItems, clearCart }) {
                 <span>₹{total.toLocaleString()}</span>
               </div>
 
-              <Button 
-                type="submit" 
-                form="checkout-form" // This links the button to the form above
-                className="w-full bg-orange-600 hover:bg-orange-700 text-white h-12 text-lg mt-4"
-                disabled={isProcessing}
-              >
-                {isProcessing ? "Processing..." : "Place Order"}
-              </Button>
+              {/* 4. SMART BUTTON LOGIC */}
+              {user ? (
+                // If Logged In: Normal Submit Button
+                <Button 
+                    type="submit" 
+                    form="checkout-form"
+                    className="w-full bg-orange-600 hover:bg-orange-700 text-white h-12 text-lg mt-4 cursor-pointer"
+                    disabled={isProcessing}
+                >
+                    {isProcessing ? "Processing..." : "Place Order"}
+                </Button>
+              ) : (
+                // If Logged Out: Redirect Button
+                <Button 
+                    type="button" 
+                    onClick={handleLoginRedirect}
+                    className="w-full bg-gray-900 hover:bg-gray-800 text-white h-12 text-lg mt-4 cursor-pointer"
+                >
+                    Log in to Place Order
+                </Button>
+              )}
+              
             </CardContent>
           </Card>
         </div>
