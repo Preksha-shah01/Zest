@@ -87,19 +87,50 @@ export default function App() {
         />
         
         <div className="flex-grow">
-          <Routes>
-            <Route path="/" element={<Home addToCart={addToCart} />} />
-            
-            {/* Pass toggleWishlist to Shop */}
-            <Route path="/shop" element={<Shop addToCart={addToCart} toggleWishlist={toggleWishlist} wishlistItems={wishlistItems} />} />
-            
-            <Route path="/new-arrivals" element={<NewArrivals addToCart={addToCart} />} />
-            <Route path="/sale" element={<Sale addToCart={addToCart} />} />
-            <Route path="/product/:id" element={<ProductDetails addToCart={addToCart} />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/checkout" element={<Checkout cartItems={cartItems} clearCart={clearCart} />} />
-          </Routes>
+         <Routes>
+  {/* UPDATE: Pass props to Home */}
+  <Route 
+    path="/" 
+    element={
+      <Home 
+        addToCart={addToCart} 
+        toggleWishlist={toggleWishlist} 
+        wishlistItems={wishlistItems} 
+      />
+    } 
+  />
+  
+  <Route path="/shop" element={<Shop addToCart={addToCart} toggleWishlist={toggleWishlist} wishlistItems={wishlistItems} />} />
+  
+  {/* UPDATE: Pass props to New Arrivals */}
+  <Route 
+    path="/new-arrivals" 
+    element={
+      <NewArrivals 
+        addToCart={addToCart} 
+        toggleWishlist={toggleWishlist} 
+        wishlistItems={wishlistItems} 
+      />
+    } 
+  />
+  
+  {/* UPDATE: Pass props to Sale */}
+  <Route 
+    path="/sale" 
+    element={
+      <Sale 
+        addToCart={addToCart} 
+        toggleWishlist={toggleWishlist} 
+        wishlistItems={wishlistItems} 
+      />
+    } 
+  />
+  
+  <Route path="/product/:id" element={<ProductDetails addToCart={addToCart} />} />
+  <Route path="/login" element={<Login />} />
+  <Route path="/signup" element={<Signup />} />
+  <Route path="/checkout" element={<Checkout cartItems={cartItems} clearCart={clearCart} />} />
+</Routes>
         </div>
 
         <Footer />
