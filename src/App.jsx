@@ -3,8 +3,11 @@ import { Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext"; 
 import { Toaster, toast } from "react-hot-toast"; 
 
+// Components
 import Navbar from "./components/layout/Navbar";
 import Footer from "./components/layout/Footer";
+
+// Pages
 import Home from "./pages/Home";
 import Shop from "./pages/Shop";
 import Sale from "./pages/Sale";
@@ -17,29 +20,39 @@ import Checkout from "./pages/Checkout";
 export default function App() {
   // --- CART STATE ---
   const [cartItems, setCartItems] = useState(() => {
-    const savedCart = localStorage.getItem("zestCart");
-    return savedCart ? JSON.parse(savedCart) : [];
+    try {
+      const savedCart = localStorage.getItem("zestCart");
+      return savedCart ? JSON.parse(savedCart) : [];
+    } catch (error) {
+      console.error("Error parsing cart data:", error);
+      return [];
+    }
   });
 
-  // --- WISHLIST STATE (New!) ---
+  // --- WISHLIST STATE (Robust Version) ---
   const [wishlistItems, setWishlistItems] = useState(() => {
-    const savedWishlist = localStorage.getItem("zestWishlist");
-    return savedWishlist ? JSON.parse(savedWishlist) : [];
+    try {
+      const savedWishlist = localStorage.getItem("zestWishlist");
+      return savedWishlist ? JSON.parse(savedWishlist) : [];
+    } catch (error) {
+      console.error("Error parsing wishlist data:", error);
+      return [];
+    }
   });
 
-  // Save Cart
+  // Save Cart to LocalStorage
   useEffect(() => {
     localStorage.setItem("zestCart", JSON.stringify(cartItems));
   }, [cartItems]);
 
-  // Save Wishlist (New!)
+  // Save Wishlist to LocalStorage
   useEffect(() => {
     localStorage.setItem("zestWishlist", JSON.stringify(wishlistItems));
   }, [wishlistItems]);
 
-  // --- ACTIONS ---
+  // --- CART ACTIONS ---
   const addToCart = (product) => {
-    setCartItems([...cartItems, product]);
+    setCartItems((prevItems) => [...prevItems, product]);
     toast.success(`${product.title} added to cart!`, {
       style: { background: '#333', color: '#fff' },
       iconTheme: { primary: '#ea580c', secondary: '#fff' },
@@ -47,7 +60,7 @@ export default function App() {
   };
 
   const removeFromCart = (indexToRemove) => {
-    setCartItems(cartItems.filter((_, index) => index !== indexToRemove));
+    setCartItems((prevItems) => prevItems.filter((_, index) => index !== indexToRemove));
     toast.error("Item removed from cart");
   };
 
@@ -55,29 +68,42 @@ export default function App() {
     setCartItems([]);
   };
 
-  // Toggle Wishlist (Add or Remove)
+  // --- WISHLIST ACTIONS (Fixed & Stable) ---
   const toggleWishlist = (product) => {
-    const exists = wishlistItems.find((item) => item.id === product.id);
+    if (!product || !product.id) return; // Safety check
+
+    // Check if item exists
+    const exists = wishlistItems.some((item) => item.id === product.id);
     
     if (exists) {
-      setWishlistItems(wishlistItems.filter((item) => item.id !== product.id));
+      // Remove item
+      setWishlistItems((prev) => prev.filter((item) => item.id !== product.id));
       toast("Removed from Wishlist", { icon: '💔' });
     } else {
-      setWishlistItems([...wishlistItems, product]);
+      // Add item (Create a clean object to avoid saving unnecessary data)
+      const cleanProduct = {
+        id: product.id,
+        title: product.title,
+        price: product.price,
+        image: product.image,
+        category: product.category
+      };
+      setWishlistItems((prev) => [...prev, cleanProduct]);
       toast("Added to Wishlist", { icon: '❤️' });
     }
   };
 
   const removeFromWishlist = (id) => {
-    setWishlistItems(wishlistItems.filter((item) => item.id !== id));
+    setWishlistItems((prev) => prev.filter((item) => item.id !== id));
+    toast("Removed from Wishlist", { icon: '💔' });
   };
 
   return (
     <AuthProvider>
       <div className="min-h-screen bg-white text-black flex flex-col">
+        {/* Toast Notification Container */}
         <Toaster position="bottom-right" />
 
-        {/* Pass Wishlist props to Navbar */}
         <Navbar 
           cartItems={cartItems} 
           removeFromCart={removeFromCart}
@@ -87,50 +113,66 @@ export default function App() {
         />
         
         <div className="flex-grow">
-         <Routes>
-  {/* UPDATE: Pass props to Home */}
-  <Route 
-    path="/" 
-    element={
-      <Home 
-        addToCart={addToCart} 
-        toggleWishlist={toggleWishlist} 
-        wishlistItems={wishlistItems} 
-      />
-    } 
-  />
-  
-  <Route path="/shop" element={<Shop addToCart={addToCart} toggleWishlist={toggleWishlist} wishlistItems={wishlistItems} />} />
-  
-  {/* UPDATE: Pass props to New Arrivals */}
-  <Route 
-    path="/new-arrivals" 
-    element={
-      <NewArrivals 
-        addToCart={addToCart} 
-        toggleWishlist={toggleWishlist} 
-        wishlistItems={wishlistItems} 
-      />
-    } 
-  />
-  
-  {/* UPDATE: Pass props to Sale */}
-  <Route 
-    path="/sale" 
-    element={
-      <Sale 
-        addToCart={addToCart} 
-        toggleWishlist={toggleWishlist} 
-        wishlistItems={wishlistItems} 
-      />
-    } 
-  />
-  
-  <Route path="/product/:id" element={<ProductDetails addToCart={addToCart} />} />
-  <Route path="/login" element={<Login />} />
-  <Route path="/signup" element={<Signup />} />
-  <Route path="/checkout" element={<Checkout cartItems={cartItems} clearCart={clearCart} />} />
-</Routes>
+          <Routes>
+            <Route 
+              path="/" 
+              element={
+                <Home 
+                  addToCart={addToCart} 
+                  toggleWishlist={toggleWishlist} 
+                  wishlistItems={wishlistItems} 
+                />
+              } 
+            />
+            
+            <Route 
+              path="/shop" 
+              element={
+                <Shop 
+                  addToCart={addToCart} 
+                  toggleWishlist={toggleWishlist} 
+                  wishlistItems={wishlistItems} 
+                />
+              } 
+            />
+            
+            <Route 
+              path="/new-arrivals" 
+              element={
+                <NewArrivals 
+                  addToCart={addToCart} 
+                  toggleWishlist={toggleWishlist} 
+                  wishlistItems={wishlistItems} 
+                />
+              } 
+            />
+            
+            <Route 
+              path="/sale" 
+              element={
+                <Sale 
+                  addToCart={addToCart} 
+                  toggleWishlist={toggleWishlist} 
+                  wishlistItems={wishlistItems} 
+                />
+              } 
+            />
+            
+            <Route 
+              path="/product/:id" 
+              element={
+                <ProductDetails 
+                  addToCart={addToCart} 
+                  toggleWishlist={toggleWishlist} 
+                  wishlistItems={wishlistItems} 
+                />
+              } 
+            />
+            
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/checkout" element={<Checkout cartItems={cartItems} clearCart={clearCart} />} />
+          </Routes>
         </div>
 
         <Footer />

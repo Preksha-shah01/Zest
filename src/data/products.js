@@ -76,7 +76,7 @@ export const allProducts = [
   },
   { 
     id: 204, 
-    title: "Silk Scarf", 
+    title: "Classic Red Lipstick", 
     price: "₹1,250", 
     category: "Accessories", 
     gender: "Women",

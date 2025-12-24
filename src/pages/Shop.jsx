@@ -1,17 +1,15 @@
 import { useState } from "react"; 
 import { useSearchParams } from "react-router-dom"; 
 import ProductCard from "@/components/product/ProductCard";
-import { allProducts } from "@/data/products"; // 1. IMPORT DATA
+import { allProducts } from "@/data/products"; 
 
-export default function Shop({ addToCart }) {
+// FIX 1: Ensure 'toggleWishlist' and 'wishlistItems' are received here
+export default function Shop({ addToCart, toggleWishlist, wishlistItems = [] }) {
   const [activeGender, setActiveGender] = useState("Men");
   const [activeCategory, setActiveCategory] = useState("All");
   
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get("q"); 
-
-  // (The rest of your component stays EXACTLY the same! 
-  // You just deleted the huge 'const allProducts = [...]' array)
 
   const categories = activeGender === "Men"
     ? ["All", "Tops", "Bottoms", "Accessories", "Footwear"]
@@ -51,17 +49,26 @@ export default function Shop({ addToCart }) {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8">
-        {filteredProducts.map((product) => (
-          <ProductCard 
-            key={product.id} 
-            id={product.id}
-            image={product.image}
-            title={product.title}
-            price={product.price}
-            category={product.category}
-            addToCart={() => addToCart(product)}
-          />
-        ))}
+        {filteredProducts.map((product) => {
+          // Check if this specific product is in the wishlist
+          const isInWishlist = wishlistItems.some(item => item.id === product.id);
+
+          return (
+            <ProductCard 
+              key={product.id} 
+              id={product.id}
+              image={product.image}
+              title={product.title}
+              price={product.price}
+              category={product.category}
+              addToCart={() => addToCart(product)}
+              
+              // FIX 2: Pass the function down to the Card
+              toggleWishlist={toggleWishlist}
+              isInWishlist={isInWishlist}
+            />
+          );
+        })}
       </div>
       
        {filteredProducts.length === 0 && (

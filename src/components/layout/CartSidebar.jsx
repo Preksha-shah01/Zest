@@ -6,20 +6,17 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom"; 
 
 export default function CartSidebar({ cartItems = [], removeFromCart }) {
-  // 1. Safety check to prevent crashes if data is missing
   const safeItems = cartItems || [];
 
-  // 2. Calculate Total Price
+  // Calculate Total Price
   const total = safeItems.reduce((sum, item) => {
     if (!item?.price) return sum;
-    // Remove "₹" and commas to convert string to number
     const price = parseFloat(item.price.replace("₹", "").replace(",", ""));
     return sum + (isNaN(price) ? 0 : price);
   }, 0);
 
   return (
     <Sheet>
-      {/* TRIGGER: The Cart Icon in Navbar */}
       <SheetTrigger asChild>
         <div className="relative cursor-pointer">
           <ShoppingCart className="w-5 h-5 text-gray-600 hover:text-black" />
@@ -29,8 +26,7 @@ export default function CartSidebar({ cartItems = [], removeFromCart }) {
         </div>
       </SheetTrigger>
 
-      {/* CONTENT: The Slide-out Drawer */}
-      {/* Added pt-10 px-6 for better spacing */}
+      {/* Drawer Content */}
       <SheetContent className="w-[400px] flex flex-col bg-white pt-10 px-6">
         <SheetHeader>
           <SheetTitle className="text-xl font-bold">Your Cart ({safeItems.length})</SheetTitle>
@@ -38,7 +34,6 @@ export default function CartSidebar({ cartItems = [], removeFromCart }) {
         
         <Separator className="my-4" />
 
-        {/* SCROLLABLE LIST OF ITEMS */}
         <ScrollArea className="flex-1 pr-4">
           {safeItems.length === 0 ? (
             <p className="text-center text-gray-500 mt-10">Your cart is empty.</p>
@@ -46,16 +41,21 @@ export default function CartSidebar({ cartItems = [], removeFromCart }) {
             <div className="space-y-4">
               {safeItems.map((item, index) => (
                 <div key={index} className="flex gap-4 items-center">
-                  {/* Product Image */}
                   <img src={item.image} alt={item.title} className="w-16 h-16 rounded object-cover" />
                   
-                  {/* Product Details */}
                   <div className="flex-1">
                     <h4 className="text-sm font-medium line-clamp-1">{item.title}</h4>
-                    <p className="text-sm text-gray-500">{item.price}</p>
+                    
+                    {/* Display Size if available */}
+                    {item.size && (
+                      <span className="text-xs bg-gray-100 px-2 py-0.5 rounded text-gray-600 mr-2 inline-block mt-1">
+                        Size: {item.size}
+                      </span>
+                    )}
+
+                    <p className="text-sm text-gray-500 mt-1">{item.price}</p>
                   </div>
                   
-                  {/* Remove Button */}
                   <Button 
                     variant="ghost" 
                     size="icon" 
@@ -70,7 +70,7 @@ export default function CartSidebar({ cartItems = [], removeFromCart }) {
           )}
         </ScrollArea>
 
-        {/* FOOTER: Total & Checkout */}
+        {/* Footer Area */}
         <div className="mt-4 space-y-4 pb-6">
           <Separator />
           
@@ -79,13 +79,11 @@ export default function CartSidebar({ cartItems = [], removeFromCart }) {
             <span>₹{total.toLocaleString()}</span>
           </div>
 
-          {/* CHECKOUT BUTTON */}
-          {/* SheetClose ensures the drawer closes when you click Checkout */}
           <SheetClose asChild>
             <Link to="/checkout">
               <Button 
                 className="w-full bg-orange-600 hover:bg-orange-700 text-white cursor-pointer"
-                disabled={safeItems.length === 0} // Disable if empty
+                disabled={safeItems.length === 0}
               >
                 Checkout
               </Button>
