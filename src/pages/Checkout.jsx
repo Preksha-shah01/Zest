@@ -4,22 +4,41 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { CheckCircle } from "lucide-react";
+import { CheckCircle, Tag } from "lucide-react"; // Imported Tag icon
 import { useAuth } from "@/context/AuthContext"; 
 import { toast } from "react-hot-toast"; 
 
-// 1. Receive addOrder prop
 export default function Checkout({ cartItems, clearCart, addOrder }) {
   const navigate = useNavigate();
   const { user } = useAuth(); 
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  
+  // --- COUPON STATE ---
+  const [couponCode, setCouponCode] = useState("");
+  const [discount, setDiscount] = useState(0);
 
-  const total = cartItems.reduce((sum, item) => {
+  // Calculate Subtotal
+  const subtotal = cartItems.reduce((sum, item) => {
     if (!item?.price) return sum;
     const price = parseFloat(item.price.replace("₹", "").replace(",", ""));
     return sum + (isNaN(price) ? 0 : price);
   }, 0);
+
+  // Calculate Final Total
+  const finalTotal = subtotal - discount;
+
+  // --- COUPON LOGIC ---
+  const applyCoupon = () => {
+    if (couponCode.toUpperCase() === "ZEST2026") {
+      const discountAmount = subtotal * 0.10; // 10% off
+      setDiscount(Math.floor(discountAmount));
+      toast.success("Coupon Applied! You saved 10%", { icon: '🎉' });
+    } else {
+      setDiscount(0);
+      toast.error("Invalid Coupon Code");
+    }
+  };
 
   const handlePlaceOrder = (e) => {
     e.preventDefault();
@@ -33,17 +52,15 @@ export default function Checkout({ cartItems, clearCart, addOrder }) {
     setIsProcessing(true);
 
     setTimeout(() => {
-      // 2. CREATE ORDER OBJECT
       const newOrder = {
-        id: Math.floor(100000 + Math.random() * 900000), // Random 6 digit ID
+        id: Math.floor(100000 + Math.random() * 900000), 
         date: new Date().toLocaleDateString(),
         status: "Processing",
-        total: total,
+        total: finalTotal, // Save the discounted total
         items: cartItems,
-        address: "123 Fashion Street, Mumbai" // In real app, get this from form
+        address: "123 Fashion Street, Mumbai" 
       };
 
-      // 3. SAVE ORDER
       addOrder(newOrder);
 
       setIsProcessing(false);
@@ -77,7 +94,6 @@ export default function Checkout({ cartItems, clearCart, addOrder }) {
     );
   }
 
-  // Empty Cart View
   if (cartItems.length === 0) {
     return (
       <div className="text-center py-20">
@@ -94,7 +110,7 @@ export default function Checkout({ cartItems, clearCart, addOrder }) {
       <h1 className="text-3xl font-bold mb-8">Checkout</h1>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
         
-        {/* Shipping Form (Visual Only) */}
+        {/* Shipping Form */}
         <div className="lg:col-span-2 space-y-6">
           <Card>
             <CardHeader><CardTitle>Shipping Information</CardTitle></CardHeader>
@@ -135,10 +151,39 @@ export default function Checkout({ cartItems, clearCart, addOrder }) {
                   <span className="font-medium">{item.price}</span>
                 </div>
               ))}
+              
               <Separator />
-              <div className="flex justify-between font-bold text-lg">
-                <span>Total</span>
-                <span>₹{total.toLocaleString()}</span>
+
+              {/* COUPON INPUT */}
+              <div className="flex gap-2">
+                <Input 
+                  placeholder="Promo Code" 
+                  value={couponCode}
+                  onChange={(e) => setCouponCode(e.target.value)}
+                />
+                <Button type="button" onClick={applyCoupon} variant="outline" className="cursor-pointer">
+                  Apply
+                </Button>
+              </div>
+
+              {/* Price Calculation */}
+              <div className="space-y-1">
+                <div className="flex justify-between text-gray-600">
+                  <span>Subtotal</span>
+                  <span>₹{subtotal.toLocaleString()}</span>
+                </div>
+                
+                {discount > 0 && (
+                  <div className="flex justify-between text-green-600 font-medium">
+                    <span className="flex items-center gap-1"><Tag className="w-3 h-3" /> Discount</span>
+                    <span>- ₹{discount.toLocaleString()}</span>
+                  </div>
+                )}
+
+                <div className="flex justify-between font-bold text-lg pt-2 border-t">
+                  <span>Total</span>
+                  <span>₹{finalTotal.toLocaleString()}</span>
+                </div>
               </div>
 
               {user ? (
