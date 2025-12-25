@@ -3,11 +3,9 @@ import { Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext"; 
 import { Toaster, toast } from "react-hot-toast"; 
 
-// Components
 import Navbar from "./components/layout/Navbar";
 import Footer from "./components/layout/Footer";
 
-// Pages
 import Home from "./pages/Home";
 import Shop from "./pages/Shop";
 import Sale from "./pages/Sale";
@@ -16,6 +14,7 @@ import ProductDetails from "./pages/ProductDetails";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Checkout from "./pages/Checkout"; 
+import MyOrders from "./pages/MyOrders"; // 1. Import New Page
 
 export default function App() {
   // --- CART STATE ---
@@ -24,43 +23,51 @@ export default function App() {
       const savedCart = localStorage.getItem("zestCart");
       return savedCart ? JSON.parse(savedCart) : [];
     } catch (error) {
-      console.error("Error parsing cart data:", error);
       return [];
     }
   });
 
-  // --- WISHLIST STATE (Robust Version) ---
+  // --- WISHLIST STATE ---
   const [wishlistItems, setWishlistItems] = useState(() => {
     try {
       const savedWishlist = localStorage.getItem("zestWishlist");
       return savedWishlist ? JSON.parse(savedWishlist) : [];
     } catch (error) {
-      console.error("Error parsing wishlist data:", error);
       return [];
     }
   });
 
-  // Save Cart to LocalStorage
+  // --- 2. ORDER HISTORY STATE ---
+  const [orders, setOrders] = useState(() => {
+    try {
+      const savedOrders = localStorage.getItem("zestOrders");
+      return savedOrders ? JSON.parse(savedOrders) : [];
+    } catch (error) {
+      return [];
+    }
+  });
+
   useEffect(() => {
     localStorage.setItem("zestCart", JSON.stringify(cartItems));
   }, [cartItems]);
 
-  // Save Wishlist to LocalStorage
   useEffect(() => {
     localStorage.setItem("zestWishlist", JSON.stringify(wishlistItems));
   }, [wishlistItems]);
 
-  // --- CART ACTIONS ---
+  // Save Orders to LocalStorage
+  useEffect(() => {
+    localStorage.setItem("zestOrders", JSON.stringify(orders));
+  }, [orders]);
+
+  // --- ACTIONS ---
   const addToCart = (product) => {
-    setCartItems((prevItems) => [...prevItems, product]);
-    toast.success(`${product.title} added to cart!`, {
-      style: { background: '#333', color: '#fff' },
-      iconTheme: { primary: '#ea580c', secondary: '#fff' },
-    });
+    setCartItems((prev) => [...prev, product]);
+    toast.success(`${product.title} added to cart!`);
   };
 
-  const removeFromCart = (indexToRemove) => {
-    setCartItems((prevItems) => prevItems.filter((_, index) => index !== indexToRemove));
+  const removeFromCart = (index) => {
+    setCartItems((prev) => prev.filter((_, i) => i !== index));
     toast.error("Item removed from cart");
   };
 
@@ -68,19 +75,13 @@ export default function App() {
     setCartItems([]);
   };
 
-  // --- WISHLIST ACTIONS (Fixed & Stable) ---
   const toggleWishlist = (product) => {
-    if (!product || !product.id) return; // Safety check
-
-    // Check if item exists
+    if (!product?.id) return;
     const exists = wishlistItems.some((item) => item.id === product.id);
-    
     if (exists) {
-      // Remove item
       setWishlistItems((prev) => prev.filter((item) => item.id !== product.id));
       toast("Removed from Wishlist", { icon: '💔' });
     } else {
-      // Add item (Create a clean object to avoid saving unnecessary data)
       const cleanProduct = {
         id: product.id,
         title: product.title,
@@ -98,10 +99,14 @@ export default function App() {
     toast("Removed from Wishlist", { icon: '💔' });
   };
 
+  // 3. ADD ORDER FUNCTION
+  const addOrder = (orderData) => {
+    setOrders((prev) => [orderData, ...prev]);
+  };
+
   return (
     <AuthProvider>
       <div className="min-h-screen bg-white text-black flex flex-col">
-        {/* Toast Notification Container */}
         <Toaster position="bottom-right" />
 
         <Navbar 
@@ -114,67 +119,21 @@ export default function App() {
         
         <div className="flex-grow">
           <Routes>
-            <Route 
-              path="/" 
-              element={
-                <Home 
-                  addToCart={addToCart} 
-                  toggleWishlist={toggleWishlist} 
-                  wishlistItems={wishlistItems} 
-                />
-              } 
-            />
-            
-            <Route 
-              path="/shop" 
-              element={
-                <Shop 
-                  addToCart={addToCart} 
-                  toggleWishlist={toggleWishlist} 
-                  wishlistItems={wishlistItems} 
-                />
-              } 
-            />
-            
-            <Route 
-              path="/new-arrivals" 
-              element={
-                <NewArrivals 
-                  addToCart={addToCart} 
-                  toggleWishlist={toggleWishlist} 
-                  wishlistItems={wishlistItems} 
-                />
-              } 
-            />
-            
-            <Route 
-              path="/sale" 
-              element={
-                <Sale 
-                  addToCart={addToCart} 
-                  toggleWishlist={toggleWishlist} 
-                  wishlistItems={wishlistItems} 
-                />
-              } 
-            />
-            
-            <Route 
-              path="/product/:id" 
-              element={
-                <ProductDetails 
-                  addToCart={addToCart} 
-                  toggleWishlist={toggleWishlist} 
-                  wishlistItems={wishlistItems} 
-                />
-              } 
-            />
-            
+            <Route path="/" element={<Home addToCart={addToCart} toggleWishlist={toggleWishlist} wishlistItems={wishlistItems} />} />
+            <Route path="/shop" element={<Shop addToCart={addToCart} toggleWishlist={toggleWishlist} wishlistItems={wishlistItems} />} />
+            <Route path="/new-arrivals" element={<NewArrivals addToCart={addToCart} toggleWishlist={toggleWishlist} wishlistItems={wishlistItems} />} />
+            <Route path="/sale" element={<Sale addToCart={addToCart} toggleWishlist={toggleWishlist} wishlistItems={wishlistItems} />} />
+            <Route path="/product/:id" element={<ProductDetails addToCart={addToCart} toggleWishlist={toggleWishlist} wishlistItems={wishlistItems} />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
-            <Route path="/checkout" element={<Checkout cartItems={cartItems} clearCart={clearCart} />} />
+            
+            {/* Pass addOrder to Checkout */}
+            <Route path="/checkout" element={<Checkout cartItems={cartItems} clearCart={clearCart} addOrder={addOrder} />} />
+            
+            {/* New Route */}
+            <Route path="/my-orders" element={<MyOrders orders={orders} />} />
           </Routes>
         </div>
-
         <Footer />
       </div>
     </AuthProvider>
