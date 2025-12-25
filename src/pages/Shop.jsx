@@ -3,7 +3,6 @@ import { useSearchParams } from "react-router-dom";
 import ProductCard from "@/components/product/ProductCard";
 import { allProducts } from "@/data/products"; 
 
-// FIX 1: Ensure 'toggleWishlist' and 'wishlistItems' are received here
 export default function Shop({ addToCart, toggleWishlist, wishlistItems = [] }) {
   const [activeGender, setActiveGender] = useState("Men");
   const [activeCategory, setActiveCategory] = useState("All");
@@ -11,9 +10,11 @@ export default function Shop({ addToCart, toggleWishlist, wishlistItems = [] }) 
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get("q"); 
 
+  // --- UPDATED CATEGORIES HERE ---
+  // Added "Jackets" to both lists so you can filter them easily
   const categories = activeGender === "Men"
-    ? ["All", "Tops", "Bottoms", "Accessories", "Footwear"]
-    : ["All", "Tops", "Bottoms", "Dresses", "Accessories", "Footwear"];
+    ? ["All", "Tops", "Bottoms", "Jackets", "Accessories", "Footwear"]
+    : ["All", "Tops", "Bottoms", "Dresses", "Jackets", "Accessories", "Footwear"];
 
   const filteredProducts = allProducts.filter(product => {
     if (searchQuery) {
@@ -50,7 +51,6 @@ export default function Shop({ addToCart, toggleWishlist, wishlistItems = [] }) 
 
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8">
         {filteredProducts.map((product) => {
-          // Check if this specific product is in the wishlist
           const isInWishlist = wishlistItems.some(item => item.id === product.id);
 
           return (
@@ -62,8 +62,6 @@ export default function Shop({ addToCart, toggleWishlist, wishlistItems = [] }) 
               price={product.price}
               category={product.category}
               addToCart={() => addToCart(product)}
-              
-              // FIX 2: Pass the function down to the Card
               toggleWishlist={toggleWishlist}
               isInWishlist={isInWishlist}
             />
@@ -71,7 +69,7 @@ export default function Shop({ addToCart, toggleWishlist, wishlistItems = [] }) 
         })}
       </div>
       
-        {filteredProducts.length === 0 && (
+      {filteredProducts.length === 0 && (
         <div className="text-center py-20 bg-gray-50 rounded-lg">
           <p className="text-xl text-gray-500">No products found.</p>
           {searchQuery && (
