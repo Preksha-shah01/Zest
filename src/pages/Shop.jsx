@@ -71,7 +71,7 @@ export default function Shop({ addToCart, toggleWishlist, wishlistItems = [] }) 
         })}
       </div>
       
-       {filteredProducts.length === 0 && (
+        {filteredProducts.length === 0 && (
         <div className="text-center py-20 bg-gray-50 rounded-lg">
           <p className="text-xl text-gray-500">No products found.</p>
           {searchQuery && (
