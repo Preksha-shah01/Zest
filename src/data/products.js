@@ -158,7 +158,7 @@ export const allProducts = [
   },
   {
     id: 21,
-    title: "Classic Nude Heels",
+    title: "Classic Heels",
     price: "₹3,200",
     category: "Footwear",
     gender: "Women",
@@ -166,7 +166,7 @@ export const allProducts = [
   },
   {
     id: 22,
-    title: "Black Ankle Boots",
+    title: "Sneakers",
     price: "₹3,999",
     category: "Footwear",
     gender: "Women",
