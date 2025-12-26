@@ -12,14 +12,14 @@ const slides = [
   },
   {
     id: 2,
-    image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=2000&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1618244972963-dbee1a7edc95?q=80&w=2070&auto=format&fit=crop",
     title: "WOMEN'S EXCLUSIVE",
     subtitle: "Elegant styles for the modern woman. Shop the look."
   },
   {
     id: 3,
-    image: "https://images.unsplash.com/photo-1617137968427-b57427100084?q=80&w=2000&auto=format&fit=crop",
-    title: "MEN'S STREETWEAR",
+    image: "https://images.unsplash.com/photo-1492447166138-50c3889fccb1?q=80&w=2070&auto=format&fit=crop",
+    title: "MEN'S EXCLUSIVE",
     subtitle: "Bold, comfortable, and stylish. Redefine your wardrobe."
   }
 ];
